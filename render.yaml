@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: cloud-dlp-app
+    env: python
+    buildCommand: ""
+    startCommand: "python app/app.py"
+    envVars:
+      - key: AWS_ACCESS_KEY
+        sync: false
+      - key: AWS_SECRET_KEY
+        sync: false
+      - key: AWS_BUCKET_NAME
+        sync: false
