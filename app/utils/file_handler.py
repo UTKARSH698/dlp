@@ -4,22 +4,25 @@ from docx import Document
 
 def extract_text(file_path):
     try:
-        file_path = file_path.lower()
+        ext = os.path.splitext(file_path)[1].lower()
 
-        if file_path.endswith(".txt"):
+        if ext == '.txt':
             with open(file_path, 'r', encoding='utf-8') as f:
                 return f.read()
 
-        elif file_path.endswith(".docx"):
+        elif ext == '.docx':
             doc = Document(file_path)
-            return "\n".join([para.text for para in doc.paragraphs])
+            return '\n'.join([para.text for para in doc.paragraphs])
 
-        elif file_path.endswith(".pdf"):
-            return pdfminer_extract(file_path)
+        elif ext == '.pdf':
+            text = pdfminer_extract(file_path)
+            if not text.strip():
+                raise ValueError("PDF parsed, but no text was extracted. File may be image-only or scanned.")
+            return text
 
         else:
-            return "ERROR: Unsupported file format"
+            raise ValueError(f"Unsupported file extension: {ext}")
 
     except Exception as e:
-        print(f"[ERROR in extract_text] {e}")
+        print(f"[extract_text ERROR] {e}")
         return f"ERROR: {e}"
