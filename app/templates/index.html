@@ -23,13 +23,7 @@
       {% endif %}
     {% endwith %}
 
-    {% if session.enc_file %}
-      <div class="mt-4 text-center">
-        <a class="btn btn-success" href="{{ url_for('download_file') }}">⬇️ Download Encrypted File</a>
-      </div>
-    {% endif %}
-
-    <div class="card p-4 shadow-sm rounded-4 mt-4">
+    <div class="card p-4 shadow-sm rounded-4">
       <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data">
         <div class="mb-3">
           <label for="file" class="form-label">Choose file (PDF, DOCX, TXT):</label>
@@ -38,6 +32,14 @@
         <button class="btn btn-primary w-100" type="submit">Upload & Scan</button>
       </form>
     </div>
+
+    {% if session.download_url %}
+      <div class="mt-4 text-center">
+        <a href="{{ session.download_url }}" class="btn btn-success" download>
+          📥 Download Encrypted File
+        </a>
+      </div>
+    {% endif %}
   </div>
 
 </body>

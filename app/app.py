@@ -1,5 +1,4 @@
-from dotenv import load_dotenv
-from utils.cloud_upload import upload_to_s3
+from utils.cloud_upload import upload_to_s3, generate_presigned_url
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
@@ -15,8 +14,6 @@ UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx'}
 
 app = Flask(__name__)
-load_dotenv()
-
 
 # Configuration
 app.secret_key = 'supersecretkey'
@@ -60,16 +57,16 @@ def upload_file():
             encrypted_path, _ = encrypt_file(filepath)
             enc_filename = os.path.basename(encrypted_path)
             session['enc_file'] = enc_filename
-            flash(f"Sensitive file detected and encrypted: {enc_filename}")
 
-            # ✅ AWS S3 Upload
-            aws_key = "AKIA3FLD4IHSRSMOZQ66"
-            aws_secret = "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"
-            bucket_name = "cloud-dlp-uploads-07"
-            s3_url = upload_to_s3(encrypted_path, bucket_name, enc_filename, aws_key, aws_secret)
-            flash(f"Encrypted file uploaded to S3: {s3_url}")
+            # Upload to S3 and store link in session
+            upload_to_s3(encrypted_path, enc_filename)
+            presigned_url = generate_presigned_url(enc_filename)
+            session['download_url'] = presigned_url
+
+            flash(f"Sensitive file detected and encrypted: {enc_filename}")
         else:
             session.pop('enc_file', None)
+            session.pop('download_url', None)
             flash("File is not sensitive. Uploaded as is.")
 
         return redirect(url_for('home'))
@@ -79,11 +76,12 @@ def upload_file():
 
 @app.route('/download')
 def download_file():
-    enc_file = session.get('enc_file')
-    if not enc_file:
-        flash("No encrypted file available for download.")
+    url = session.get('download_url')
+    if url:
+        return redirect(url)
+    else:
+        flash("No download link available.")
         return redirect(url_for('home'))
-    return send_from_directory(app.config['UPLOAD_FOLDER'], enc_file, as_attachment=True)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
