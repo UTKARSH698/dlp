@@ -1,8 +1,6 @@
 import os
-import pytesseract
-from pdf2image import convert_from_path
+from pdfminer.high_level import extract_text as pdfminer_extract
 from docx import Document
-
 
 def extract_text(file_path):
     try:
@@ -17,11 +15,7 @@ def extract_text(file_path):
             return "\n".join([para.text for para in doc.paragraphs])
 
         elif file_path.endswith(".pdf"):
-            pages = convert_from_path(file_path)
-            text = ""
-            for page in pages:
-                text += pytesseract.image_to_string(page)
-            return text
+            return pdfminer_extract(file_path)
 
         else:
             return "ERROR: Unsupported file format"
